@@ -1,0 +1,53 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Edit Student{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-warning text-dark rounded-top-4 py-3">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-edit me-2"></i>Edit Student — {{ student.name }}</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Student Name</label>
+              <input type="text" name="name" class="form-control" value="{{ student.name }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Student ID</label>
+              <input type="text" name="student_id" class="form-control" value="{{ student.student_id }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Roll Number</label>
+              <input type="text" name="roll_number" class="form-control" value="{{ student.roll_number }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Major</label>
+              <select name="major" class="form-select" required>
+                {% for m in majors %}
+                <option value="{{ m }}" {% if student.major == m %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Semester</label>
+              <select name="semester" class="form-select" required>
+                {% for s in semesters %}
+                <option value="{{ s }}" {% if student.semester == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-warning flex-fill py-2 fw-semibold">
+              <i class="fas fa-save me-2"></i>Save Changes
+            </button>
+            <a href="/admin/students" class="btn btn-outline-secondary px-4">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

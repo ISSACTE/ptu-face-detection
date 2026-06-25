@@ -1,0 +1,88 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Students Management{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h5 class="fw-bold mb-1">All Students</h5>
+    <p class="text-muted small mb-0">{{ students|length }} total records</p>
+  </div>
+  <a href="/admin/students/add" class="btn btn-primary rounded-3">
+    <i class="fas fa-plus me-2"></i>Add Student
+  </a>
+</div>
+
+<!-- Search bar -->
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+  <div class="card-body py-3">
+    <input type="text" id="searchInput" class="form-control rounded-3" placeholder="🔍 Search by name, ID, major...">
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0" id="studentsTable">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Student ID</th>
+            <th>Major</th>
+            <th>Semester</th>
+            <th>Roll No.</th>
+            <th>Face Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in students %}
+          <tr>
+            <td class="text-muted small">{{ loop.index }}</td>
+            <td class="fw-semibold">
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:32px;height:32px;border-radius:50%;background:#667eea;display:flex;align-items:center;justify-content:center;color:white;font-size:.8rem;font-weight:bold;">
+                  {{ s.name[0].upper() }}
+                </div>
+                {{ s.name }}
+              </div>
+            </td>
+            <td><code class="bg-light px-2 py-1 rounded">{{ s.student_id }}</code></td>
+            <td><span class="badge bg-info text-dark">{{ s.major }}</span></td>
+            <td>{{ s.semester }}</td>
+            <td>{{ s.roll_number }}</td>
+            <td>
+              {% if s.face_encodings %}
+              <span class="badge bg-success rounded-pill"><i class="fas fa-check-circle me-1"></i>Trained</span>
+              {% else %}
+              <span class="badge bg-warning text-dark rounded-pill"><i class="fas fa-exclamation-circle me-1"></i>Untrained</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="btn-group btn-group-sm">
+                <a href="/admin/train/{{ s.id }}" class="btn btn-outline-primary" title="Train Faces"><i class="fas fa-brain"></i></a>
+                <a href="/admin/students/edit/{{ s.id }}" class="btn btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                <form method="POST" action="/admin/students/delete/{{ s.id }}" class="d-inline" onsubmit="return confirm('Delete {{ s.name }}?')">
+                  <button type="submit" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="8" class="text-center text-muted py-5">No students yet. <a href="/admin/students/add">Add the first student</a>.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#studentsTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

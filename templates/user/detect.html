@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Face Detection — PTU{% endblock %}
+{% block body %}
+<nav class="navbar navbar-dark" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="/"><i class="fas fa-graduation-cap me-2 text-warning"></i>PTU Face Recognition</a>
+    <a href="/" class="btn btn-outline-light btn-sm"><i class="fas fa-arrow-left me-1"></i>Home</a>
+  </div>
+</nav>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h2 class="fw-bold mb-1 text-center"><i class="fas fa-camera text-primary me-2"></i>Face Detection & Recognition</h2>
+      <p class="text-muted text-center mb-4">Upload a photo or use camera to identify a student</p>
+
+      <!-- Tabs -->
+      <ul class="nav nav-pills justify-content-center mb-4" id="detectTabs">
+        <li class="nav-item">
+          <button class="nav-link active px-4" id="upload-tab" onclick="showTab('upload')">
+            <i class="fas fa-upload me-1"></i>Upload Image
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link px-4" id="camera-tab" onclick="showTab('camera')">
+            <i class="fas fa-camera me-1"></i>Use Camera
+          </button>
+        </li>
+      </ul>
+
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body p-4">
+          <!-- Upload Tab -->
+          <div id="upload-section">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+              <div class="upload-zone border-2 border-dashed rounded-4 p-5 text-center mb-3" id="uploadZone"
+                   onclick="document.getElementById('faceInput').click()" style="border-color:#dee2e6;cursor:pointer;transition:.2s;">
+                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                <p class="mb-1 fw-semibold">Click to upload or drag & drop</p>
+                <p class="text-muted small">JPG, PNG, JPEG supported</p>
+                <img id="previewImg" src="" style="max-height:200px;display:none;" class="rounded-3 mt-2">
+              </div>
+              <input type="file" name="face_image" id="faceInput" accept="image/*" class="d-none" onchange="previewFile(this)">
+              <button type="submit" class="btn btn-primary w-100 btn-lg rounded-3">
+                <i class="fas fa-search me-2"></i>Detect & Recognize
+              </button>
+            </form>
+          </div>
+
+          <!-- Camera Tab -->
+          <div id="camera-section" style="display:none;">
+            <form method="POST" id="cameraForm">
+              <input type="hidden" name="captured_image" id="capturedImage">
+              <div class="text-center">
+                <video id="video" width="100%" style="max-height:300px;border-radius:12px;display:none;"></video>
+                <canvas id="canvas" style="display:none;"></canvas>
+                <img id="snapshot" style="max-width:100%;border-radius:12px;display:none;" class="mb-3">
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                  <button type="button" class="btn btn-outline-primary" onclick="startCamera()">
+                    <i class="fas fa-video me-1"></i>Start Camera
+                  </button>
+                  <button type="button" class="btn btn-success" id="captureBtn" onclick="capturePhoto()" style="display:none;">
+                    <i class="fas fa-camera me-1"></i>Capture
+                  </button>
+                  <button type="submit" class="btn btn-primary" id="submitCamera" style="display:none;">
+                    <i class="fas fa-search me-1"></i>Recognize
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result -->
+      {% if result %}
+      <div class="card shadow-lg border-0 rounded-4 mt-4 border-start border-success border-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center mb-3">
+            <div class="me-3" style="width:56px;height:56px;background:#28a745;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;">
+              {{ result.name[0].upper() }}
+            </div>
+            <div>
+              <h5 class="fw-bold mb-0 text-success"><i class="fas fa-check-circle me-2"></i>Student Detected!</h5>
+              <span class="text-muted small">Confidence: {{ result.confidence }}%</span>
+            </div>
+            {% if image_data %}
+            <img src="{{ image_data }}" class="ms-auto rounded-3" style="height:60px;width:60px;object-fit:cover;" alt="input">
+            {% endif %}
+          </div>
+          <hr>
+          <h5 class="fw-bold mb-3">Detected Student:</h5>
+          <div class="row g-3">
+            <div class="col-6"><div class="p-3 bg-light rounded-3"><div class="small text-muted">Student Name</div><div class="fw-bold">{{ result.name }}</div></div></div>
+            <div class="col-6"><div class="p-3 bg-light rounded-3"><div class="small text-muted">Student ID</div><div class="fw-bold text-primary">{{ result.student_id }}</div></div></div>
+            <div class="col-6"><div class="p-3 bg-light rounded-3"><div class="small text-muted">Major</div><div class="fw-bold">{{ result.major }}</div></div></div>
+            <div class="col-6"><div class="p-3 bg-light rounded-3"><div class="small text-muted">Semester</div><div class="fw-bold">{{ result.semester }}</div></div></div>
+            <div class="col-6"><div class="p-3 bg-light rounded-3"><div class="small text-muted">Roll Number</div><div class="fw-bold">{{ result.roll_number }}</div></div></div>
+          </div>
+        </div>
+      </div>
+      {% elif error %}
+      <div class="alert alert-danger mt-4 rounded-3"><i class="fas fa-exclamation-circle me-2"></i>{{ error }}</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(tab) {
+  document.getElementById('upload-section').style.display = tab === 'upload' ? '' : 'none';
+  document.getElementById('camera-section').style.display = tab === 'camera' ? '' : 'none';
+  document.getElementById('upload-tab').classList.toggle('active', tab === 'upload');
+  document.getElementById('camera-tab').classList.toggle('active', tab === 'camera');
+}
+function previewFile(input) {
+  const file = input.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.getElementById('previewImg');
+      img.src = e.target.result;
+      img.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+let stream = null;
+function startCamera() {
+  navigator.mediaDevices.getUserMedia({video: true}).then(s => {
+    stream = s;
+    const v = document.getElementById('video');
+    v.srcObject = s;
+    v.play();
+    v.style.display = '';
+    document.getElementById('captureBtn').style.display = '';
+  }).catch(() => alert('Camera access denied.'));
+}
+function capturePhoto() {
+  const v = document.getElementById('video');
+  const c = document.getElementById('canvas');
+  c.width = v.videoWidth;
+  c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  const dataURL = c.toDataURL('image/jpeg', 0.9);
+  document.getElementById('capturedImage').value = dataURL;
+  document.getElementById('snapshot').src = dataURL;
+  document.getElementById('snapshot').style.display = '';
+  v.style.display = 'none';
+  document.getElementById('submitCamera').style.display = '';
+  if (stream) stream.getTracks().forEach(t => t.stop());
+}
+const uz = document.getElementById('uploadZone');
+if (uz) {
+  uz.addEventListener('dragover', e => { e.preventDefault(); uz.style.borderColor='#0d6efd'; });
+  uz.addEventListener('dragleave', () => { uz.style.borderColor='#dee2e6'; });
+  uz.addEventListener('drop', e => {
+    e.preventDefault();
+    uz.style.borderColor='#dee2e6';
+    const fi = document.getElementById('faceInput');
+    fi.files = e.dataTransfer.files;
+    previewFile(fi);
+  });
+}
+</script>
+{% endblock %}

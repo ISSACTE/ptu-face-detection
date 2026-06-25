@@ -1,0 +1,131 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Train Faces — {{ student.name }}{% endblock %}
+{% block content %}
+<div class="row">
+  <!-- Student Info -->
+  <div class="col-md-4 mb-4">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body text-center p-4">
+        <div class="mb-3" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;margin:0 auto;">
+          {{ student.name[0].upper() }}
+        </div>
+        <h5 class="fw-bold">{{ student.name }}</h5>
+        <p class="text-muted mb-1">{{ student.student_id }}</p>
+        <span class="badge bg-info text-dark">{{ student.major }}</span>
+        <hr>
+        <div class="row g-2 text-start">
+          <div class="col-6"><small class="text-muted">Semester</small><div class="fw-semibold">{{ student.semester }}</div></div>
+          <div class="col-6"><small class="text-muted">Roll No.</small><div class="fw-semibold">{{ student.roll_number }}</div></div>
+        </div>
+        <hr>
+        {% if student.face_encodings %}
+        <span class="badge bg-success px-3 py-2"><i class="fas fa-check-circle me-2"></i>Face Trained</span>
+        {% else %}
+        <span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-exclamation-circle me-2"></i>Not Trained Yet</span>
+        {% endif %}
+        <div class="mt-3">
+          <a href="/admin/students/edit/{{ student.id }}" class="btn btn-outline-secondary btn-sm w-100">
+            <i class="fas fa-edit me-1"></i>Edit Info
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Section -->
+  <div class="col-md-8">
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+      <div class="card-header bg-primary text-white rounded-top-4 py-3">
+        <h6 class="mb-0 fw-bold"><i class="fas fa-upload me-2"></i>Upload Face Images</h6>
+      </div>
+      <div class="card-body p-4">
+        <div class="alert alert-info rounded-3 small">
+          <i class="fas fa-info-circle me-2"></i>
+          Upload <strong>at least 2 face images</strong> for accurate recognition. Use clear, front-facing photos with good lighting.
+        </div>
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+          <div class="upload-zone border-2 border-dashed rounded-4 p-4 text-center mb-3" id="dropZone"
+               onclick="document.getElementById('faceFiles').click()"
+               style="border-color:#dee2e6;cursor:pointer;transition:.2s;border-style:dashed;">
+            <i class="fas fa-images fa-3x text-primary mb-3"></i>
+            <p class="fw-semibold mb-1">Click or drag & drop face images</p>
+            <p class="text-muted small">JPG, PNG, JPEG — multiple files supported</p>
+            <div id="previewContainer" class="d-flex flex-wrap gap-2 justify-content-center mt-2"></div>
+          </div>
+          <input type="file" name="face_images" id="faceFiles" accept="image/*" multiple class="d-none" onchange="previewFiles(this)">
+          <button type="submit" class="btn btn-primary w-100 btn-lg rounded-3 fw-bold">
+            <i class="fas fa-brain me-2"></i>Upload & Train
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Existing Images -->
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0"><i class="fas fa-images text-primary me-2"></i>Training Images ({{ images|length }})</h6>
+        {% if images|length < 2 %}
+        <span class="badge bg-warning text-dark">Need {{ 2 - images|length }} more</span>
+        {% else %}
+        <span class="badge bg-success">Ready</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        {% if images %}
+        <div class="row g-3">
+          {% for img in images %}
+          <div class="col-md-4 col-6">
+            <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+              <img src="data:image/jpeg;base64,{{ img.image_data }}" class="card-img-top" style="height:140px;object-fit:cover;" alt="Face {{ loop.index }}">
+              <div class="card-body p-2 d-flex justify-content-between align-items-center">
+                <small class="text-muted">Image {{ loop.index }}</small>
+                <form method="POST" action="/admin/train/{{ student.id }}/delete_image/{{ img.id }}" onsubmit="return confirm('Delete this image?')">
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                    <i class="fas fa-trash" style="font-size:.75rem;"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center text-muted py-4">
+          <i class="fas fa-camera fa-3x mb-3 opacity-25"></i>
+          <p>No training images yet. Upload face images above.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewFiles(input) {
+  const container = document.getElementById('previewContainer');
+  container.innerHTML = '';
+  Array.from(input.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'height:80px;width:80px;object-fit:cover;border-radius:8px;border:2px solid #0d6efd;';
+      container.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='#0d6efd'; dz.style.background='#f0f4ff'; });
+dz.addEventListener('dragleave', () => { dz.style.borderColor='#dee2e6'; dz.style.background=''; });
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.style.borderColor='#dee2e6'; dz.style.background='';
+  const fi = document.getElementById('faceFiles');
+  const dt = new DataTransfer();
+  Array.from(e.dataTransfer.files).forEach(f => dt.items.add(f));
+  fi.files = dt.files;
+  previewFiles(fi);
+});
+</script>
+{% endblock %}

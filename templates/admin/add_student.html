@@ -1,0 +1,67 @@
+{% extends "admin/base_admin.html" %}
+{% block page_title %}Add New Student{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-primary text-white rounded-top-4 py-3">
+        <h5 class="mb-0 fw-bold"><i class="fas fa-user-plus me-2"></i>Add New Student</h5>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Student Name <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" name="name" class="form-control" placeholder="Full name" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Student ID <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-id-card"></i></span>
+                <input type="text" name="student_id" class="form-control" placeholder="e.g. PTU-2024-001" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Roll Number <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-hashtag"></i></span>
+                <input type="text" name="roll_number" class="form-control" placeholder="e.g. 001" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Major <span class="text-danger">*</span></label>
+              <select name="major" class="form-select" required>
+                <option value="">Select Major</option>
+                {% for m in majors %}
+                <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Semester <span class="text-danger">*</span></label>
+              <select name="semester" class="form-select" required>
+                <option value="">Select Semester</option>
+                {% for s in semesters %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="alert alert-info mt-3 rounded-3 small">
+            <i class="fas fa-info-circle me-2"></i>After adding the student, go to <strong>Train Faces</strong> to upload face images for recognition.
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary flex-fill py-2 fw-semibold">
+              <i class="fas fa-save me-2"></i>Add Student
+            </button>
+            <a href="/admin/students" class="btn btn-outline-secondary px-4">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
