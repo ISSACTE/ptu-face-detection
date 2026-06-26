@@ -106,7 +106,7 @@ Student-Face-Recognition-System/
 ## Student Fields
 - **Student Name**
 - **Student ID** (unique)
-- **Major:** Civil / Electronic / Mechanical / Electrical Power / Computer Engineering and Information Technology
+- **Major:** Civil / Electronic / Mechanical / Electrical Power / Computer Engineering / IT
 - **Semester:** Seminar, I–XII
 - **Roll Number**
 
